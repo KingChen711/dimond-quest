@@ -1,0 +1,11 @@
+/* App container styles for full viewport */
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  background: #404040;
+}
+
+/* Canvas will fill the container automatically */
+canvas {
+  display: block;
+}
