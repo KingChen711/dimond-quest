@@ -165,7 +165,7 @@ export function generateDiamondPieces(): DiamondPiece[] {
   // Position: right side of the board (x: 6, y: 0, z: 0)
   // Arrangement: organized by shape in 3 rows (round, triangular, square)
   // Spacing: 1.5 units between pieces (increased for better visibility)
-  const stagingBaseX = 6;
+  const stagingBaseX = 4; // Moved closer to board (was 6)
   const stagingBaseY = 0; // Same level as board
   const stagingBaseZ = 2; // Centered vertically
   const pieceSpacing = 1.5; // Increased from 1.0 to 1.5

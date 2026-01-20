@@ -1,0 +1,59 @@
+.pdf-buttons-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+  z-index: 100;
+}
+
+.pdf-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-button:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rules-button {
+  border-color: #4a90e2;
+  color: #4a90e2;
+}
+
+.rules-button:hover {
+  background: #4a90e2;
+  color: white;
+}
+
+.solutions-button {
+  border-color: #50c878;
+  color: #50c878;
+}
+
+.solutions-button:hover {
+  background: #50c878;
+  color: white;
+}
+
+.pdf-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.pdf-button span {
+  font-weight: 600;
+}

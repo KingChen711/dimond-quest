@@ -8,7 +8,8 @@ import { StagingArea } from "./components/StagingArea";
 import { CameraSetup } from "./components/CameraSetup";
 import { DiamondPiece } from "./components/DiamondPiece";
 import { ResetButton } from "./components/ResetButton";
-import { PDFReferenceButton } from "./components/PDFReferenceButton";
+import { PDFButtons } from "./components/PDFButtons";
+import { ChallengeViewer } from "./components/ChallengeViewer";
 import * as THREE from "three";
 
 /**
@@ -68,6 +69,10 @@ function App() {
   // Initialize game state with all pieces in staging area and empty board
   // Validates: Requirements 3, 5 (State management for interactions)
   const [gameState, setGameState] = useState<GameState>(createInitialGameState);
+
+  // Challenge/level selection state
+  const [selectedLevel, setSelectedLevel] = useState<number>(1);
+  const [showChallenges, setShowChallenges] = useState<boolean>(true);
 
   // Ref to track the drag plane for raycasting
   const dragPlaneRef = useRef<THREE.Plane>(
@@ -468,8 +473,33 @@ function App() {
   return (
     <div className="app-container">
       {/* UI Overlays */}
-      <PDFReferenceButton />
+      {showChallenges && (
+        <ChallengeViewer
+          selectedLevel={selectedLevel}
+          onLevelChange={setSelectedLevel}
+        />
+      )}
+      <PDFButtons />
       <ResetButton onReset={resetBoard} />
+      <button
+        onClick={() => setShowChallenges(!showChallenges)}
+        style={{
+          position: "fixed",
+          left: "20px",
+          bottom: "20px",
+          padding: "10px 20px",
+          background: "#4a90e2",
+          color: "white",
+          border: "none",
+          borderRadius: "8px",
+          cursor: "pointer",
+          fontSize: "14px",
+          fontWeight: "600",
+          zIndex: 100,
+        }}
+      >
+        {showChallenges ? "Hide" : "Show"} Challenges
+      </button>
 
       <Canvas
         camera={{
