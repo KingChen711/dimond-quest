@@ -16,15 +16,11 @@ import { OrbitControls } from "@react-three/drei";
  *
  * Validates: Requirements 4.1-4.5 (Camera controls and constraints)
  */
-export function CameraSetup() {
+export function CameraSetup({ enabled = true }: { enabled?: boolean }) {
   return (
     <OrbitControls
-      // Use right mouse button (button 2) for rotation to leave left button for dragging
-      mouseButtons={{
-        LEFT: undefined, // Disable left button for orbit controls
-        MIDDLE: undefined,
-        RIGHT: 2, // Use right button for rotation
-      }}
+      enabled={enabled}
+      // Use default mouse buttons: Left=Rotate, Right=Pan, Middle=Zoom
       // Enable rotation with right mouse drag
       enableRotate={true}
       // Enable zoom with mouse wheel (default behavior)

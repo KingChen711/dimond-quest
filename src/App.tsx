@@ -71,8 +71,17 @@ function App() {
   const [gameState, setGameState] = useState<GameState>(createInitialGameState);
 
   // Challenge/level selection state
-  const [selectedLevel, setSelectedLevel] = useState<number>(1);
+  // Load last played level from localStorage if available
+  const [selectedLevel, setSelectedLevel] = useState<number>(() => {
+    const savedLevel = localStorage.getItem("diamondQuest_lastLevel");
+    return savedLevel ? parseInt(savedLevel, 10) : 1;
+  });
   const [showChallenges, setShowChallenges] = useState<boolean>(true);
+
+  // Persist selected level to localStorage whenever it changes
+  React.useEffect(() => {
+    localStorage.setItem("diamondQuest_lastLevel", selectedLevel.toString());
+  }, [selectedLevel]);
 
   // Ref to track the drag plane for raycasting
   const dragPlaneRef = useRef<THREE.Plane>(
@@ -324,11 +333,8 @@ function App() {
    * Validates: Requirements 3.1, 3.6 (Drag initiation)
    */
   const startDrag = (pieceId: string) => {
-    // Prevent immediate re-drag after drop
-    if (justDroppedRef.current) {
-      justDroppedRef.current = false;
-      return;
-    }
+    // Removed immediate re-drag prevention for smoother Drag & Drop experience
+    // if (justDroppedRef.current) { ... }
 
     setGameState((prevState) => {
       // Find the piece
@@ -482,21 +488,8 @@ function App() {
       <PDFButtons />
       <ResetButton onReset={resetBoard} />
       <button
+        className="toggle-challenges-btn"
         onClick={() => setShowChallenges(!showChallenges)}
-        style={{
-          position: "fixed",
-          left: "20px",
-          bottom: "20px",
-          padding: "10px 20px",
-          background: "#4a90e2",
-          color: "white",
-          border: "none",
-          borderRadius: "8px",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "600",
-          zIndex: 100,
-        }}
       >
         {showChallenges ? "Hide" : "Show"} Challenges
       </button>
@@ -517,7 +510,7 @@ function App() {
         />
 
         {/* Camera setup - points camera at board center (0, 0, 0) */}
-        <CameraSetup />
+        <CameraSetup enabled={gameState.draggedPiece === null} />
 
         {/* Ambient lighting for base illumination - much brighter */}
         <ambientLight intensity={1.5} color="#ffffff" />
@@ -566,7 +559,11 @@ function App() {
         {/* Ground plane - no shadows */}
         <mesh position={[0, -1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[30, 30]} />
-          <meshStandardMaterial color="#808080" />
+          <meshStandardMaterial
+            color="#1e293b"
+            roughness={0.8}
+            metalness={0.2}
+          />
         </mesh>
       </Canvas>
     </div>

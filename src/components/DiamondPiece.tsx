@@ -22,33 +22,6 @@ interface DiamondPieceProps {
   onClick?: (pieceId: string) => void;
 }
 
-/**
- * DiamondPiece component
- *
- * Creates a gem-shaped piece using octahedron base geometry with shape variants.
- *
- * Geometry:
- * - Base shape: Octahedron (8-faced diamond)
- * - Scale: 0.4 units
- * - Shape variants:
- *   - Round: Standard octahedron
- *   - Triangular: Octahedron with triangular cross-section (rotated)
- *   - Square: Octahedron with square cross-section
- *
- * Materials (MeshPhysicalMaterial):
- * - Transparency: 0.3 opacity
- * - Transmission: 0.8 (light passes through)
- * - Roughness: 0.1 (glossy surface)
- * - Metalness: 0.2
- * - Color variants: orange, yellow, green, blue, red
- *
- * Visual states:
- * - Normal: Base appearance with color
- * - Hovered: Scaled up (1.1x) with increased emissive
- * - Dragged: Elevated and scaled up (1.15x) with enhanced emissive
- *
- * Position: Determined by piece.position from game state
- */
 export const DiamondPiece: React.FC<DiamondPieceProps> = ({
   piece,
   isHovered = false,
@@ -56,17 +29,14 @@ export const DiamondPiece: React.FC<DiamondPieceProps> = ({
   onClick,
 }) => {
   // Piece geometry parameters
-  const baseScale = 1.0; // Increased from 0.4 to make pieces nearly fill the slots
-
-  // Calculate scale based on state
+  const baseScale = 1.0;
   const scale = isDragged
     ? baseScale * 1.15
     : isHovered
       ? baseScale * 1.1
       : baseScale;
 
-  // Color mapping for pieces
-  // Requirements 2.2-2.6: orange, yellow, green, blue, red
+  // Color mapping
   const getColorHex = (color: PieceColor): string => {
     switch (color) {
       case "orange":
@@ -84,169 +54,194 @@ export const DiamondPiece: React.FC<DiamondPieceProps> = ({
     }
   };
 
-  // Memoize the color to avoid recalculation
   const colorHex = useMemo(() => getColorHex(piece.color), [piece.color]);
 
-  // Create faceted square diamond geometry
-  const createSquareDiamondGeometry = useMemo(() => {
+  // Helper to create a "Brilliant Cut" style geometry
+  // Structure: Tip (Bottom) -> Girdle (Middle Ring) -> Table (Top Ring) -> Center (Top Point)
+  const createGemGeometry = (girdleVertices: { x: number; z: number }[]) => {
     const geometry = new THREE.BufferGeometry();
-    const tableSize = 2.0; // Top flat surface - square shape (larger to compensate for scale)
-    const girdleSize = 2.2; // Slightly wider at the girdle
-    const crownHeight = 3.0; // Very tall crown to be visible after 0.4x scale
-    const pavilionDepth = 0.5; // Shallow pointed bottom
+    const positions: number[] = [];
 
-    // Define vertices for a faceted square diamond
-    const vertices = new Float32Array([
-      // Top table (flat square top) - 4 vertices (aligned to axes for square appearance)
-      -tableSize / 2,
-      crownHeight,
-      -tableSize / 2, // 0 - front left
-      tableSize / 2,
-      crownHeight,
-      -tableSize / 2, // 1 - front right
-      tableSize / 2,
-      crownHeight,
-      tableSize / 2, // 2 - back right
-      -tableSize / 2,
-      crownHeight,
-      tableSize / 2, // 3 - back left
+    // Vertical dimensions (Reduced total height for balance)
+    const tipY = -0.6; // Bottom point (Shortened depth)
+    const girdleY = 0.2; // Wide point (Lowered)
+    const tableY = 0.45; // Top flat edge (Lowered)
 
-      // Crown girdle (wider square at middle) - 4 vertices
-      -girdleSize / 2,
-      0,
-      -girdleSize / 2, // 4 - front left
-      girdleSize / 2,
-      0,
-      -girdleSize / 2, // 5 - front right
-      girdleSize / 2,
-      0,
-      girdleSize / 2, // 6 - back right
-      -girdleSize / 2,
-      0,
-      girdleSize / 2, // 7 - back left
+    // Slight dome for the center? Or flat?
+    // User asked "convex", so let's pop the center just slightly above the table edge
+    const centerY = 0.55; // Higher peak (0.1 above table) for "convex" look
 
-      // Pavilion point (bottom) - 1 vertex
-      0,
-      -pavilionDepth,
-      0, // 8 - center bottom point
-    ]);
+    // Scale factor for the table (top) relative to girdle (middle)
+    // A value of 0.75 means the top flat face is 75% size of the widest part
+    const tableScale = 0.75;
 
-    // Define faces (triangles)
-    const indices = new Uint16Array([
-      // Top table (2 triangles forming square)
-      0,
-      1,
-      2,
-      0,
-      2,
-      3,
+    const tip = { x: 0, y: tipY, z: 0 };
+    const centerTop = { x: 0, y: centerY, z: 0 };
 
-      // Crown facets (connecting table to girdle) - 8 triangular facets
-      0,
-      4,
-      5,
-      0,
-      5,
-      1, // Front crown facets
-      1,
-      5,
-      6,
-      1,
-      6,
-      2, // Right crown facets
-      2,
-      6,
-      7,
-      2,
-      7,
-      3, // Back crown facets
-      3,
-      7,
-      4,
-      3,
-      4,
-      0, // Left crown facets
+    // Generate Vertices Lists
+    const numPoints = girdleVertices.length;
 
-      // Pavilion facets (connecting girdle to point) - 4 triangular facets
-      4,
-      8,
-      5, // Front pavilion
-      5,
-      8,
-      6, // Right pavilion
-      6,
-      8,
-      7, // Back pavilion
-      7,
-      8,
-      4, // Left pavilion
-    ]);
+    // 1. Pavilion Faces (Tip -> Girdle -> Girdle)
+    // Connects magnitude of bottom point to the outer ring
+    for (let i = 0; i < numPoints; i++) {
+      const d1 = girdleVertices[i];
+      const d2 = girdleVertices[(i + 1) % numPoints];
 
-    geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      // Push Triangle: Tip -> D1 -> D2 (CCW Order for outer normal)
+      positions.push(d1.x, girdleY, d1.z);
+      positions.push(d2.x, girdleY, d2.z);
+      positions.push(tip.x, tip.y, tip.z);
+    }
+
+    // 2. Crown Faces (Girdle -> Girdle -> Table -> Table)
+    // Connects outer ring to inner top ring. Quads split into 2 triangles.
+    for (let i = 0; i < numPoints; i++) {
+      const g1 = girdleVertices[i];
+      const g2 = girdleVertices[(i + 1) % numPoints];
+
+      const t1 = { x: g1.x * tableScale, z: g1.z * tableScale };
+      const t2 = { x: g2.x * tableScale, z: g2.z * tableScale };
+
+      // Quad: G1-G2-T2-T1
+      // Tri 1: G1 -> G2 -> T2
+      positions.push(g1.x, girdleY, g1.z);
+      positions.push(g2.x, girdleY, g2.z); // G2 is "Next"
+      positions.push(t2.x, tableY, t2.z);
+
+      // Tri 2: G1 -> T2 -> T1
+      positions.push(g1.x, girdleY, g1.z);
+      positions.push(t2.x, tableY, t2.z);
+      positions.push(t1.x, tableY, t1.z);
+    }
+
+    // 3. Table Faces (Table -> Table -> Center)
+    // Fills the top hole
+    for (let i = 0; i < numPoints; i++) {
+      const g1 = girdleVertices[i];
+      const g2 = girdleVertices[(i + 1) % numPoints];
+
+      const t1 = { x: g1.x * tableScale, z: g1.z * tableScale };
+      const t2 = { x: g2.x * tableScale, z: g2.z * tableScale };
+
+      // Tri: Center -> T1 -> T2 (CCW looking from top)
+      // Actually Center -> T1 -> T2
+      positions.push(centerTop.x, centerTop.y, centerTop.z);
+      positions.push(t1.x, tableY, t1.z);
+      positions.push(t2.x, tableY, t2.z);
+    }
+
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
     geometry.computeVertexNormals();
-
     return geometry;
-  }, []);
-
-  // Get geometry based on shape
-  const getGeometry = () => {
-    switch (piece.shape) {
-      case "triangular":
-        // Cylinder with 3 sides for triangular prism - better size match
-        return <cylinderGeometry args={[0.55, 0.55, 1.2, 3]} />;
-      case "square":
-        // Box geometry for square diamond
-        return <boxGeometry args={[0.8, 1.2, 0.8]} />;
-      case "round":
-      default:
-        // Cylinder for round shape - looks like circle from top
-        return <cylinderGeometry args={[0.55, 0.55, 1.2, 32]} />;
-    }
   };
 
-  // Get rotation based on shape
-  const getRotation = (): [number, number, number] => {
-    switch (piece.shape) {
-      case "triangular":
-        // Rotate 30 degrees (PI/6) to make one vertex point up
-        return [0, Math.PI * 2, 0];
-      case "square":
-        // Rotate 45 degrees on Y axis to appear as diamond from top
-        return [0, Math.PI / 4, 0];
-      case "round":
-      default:
-        // No rotation needed for cylinder
-        return [0, 0, 0];
+  const currentGeometry = useMemo(() => {
+    // 1. Round (12-sided)
+    if (piece.shape === "round") {
+      const vertices = [];
+      const segments = 12;
+      const radius = 0.55;
+      for (let i = 0; i < segments; i++) {
+        const theta = (i / segments) * Math.PI * 2;
+        // Invert Sine (z = -sin) for correct CCW winding order
+        vertices.push({
+          x: Math.cos(theta) * radius,
+          z: -Math.sin(theta) * radius,
+        });
+      }
+      return createGemGeometry(vertices);
     }
-  };
+    // 2. Square (Chamfered)
+    else if (piece.shape === "square") {
+      const w = 0.55; // Half width
+      const c = 0.15; // Chamfer amount
+      // 8 points CCW dimensions
+      const vertices = [
+        { x: w - c, z: -w }, // Top Right Start
+        { x: -w + c, z: -w }, // Top Left End
+        { x: -w, z: -w + c }, // Top Left Start
+        { x: -w, z: w - c }, // Bottom Left End
+        { x: -w + c, z: w }, // Bottom Left Start
+        { x: w - c, z: w }, // Bottom Right End
+        { x: w, z: w - c }, // Bottom Right Start
+        { x: w, z: -w + c }, // Top Right End
+      ];
+      return createGemGeometry(vertices);
+    }
+    // 3. Triangle (Chamfered)
+    else {
+      const R = 0.6;
+      const delta = 0.25; // radians spread for chamfer (increase for more visible cut)
 
-  // Handle click event
-  const handleClick = (event: any) => {
+      // 3 Corners at 90, 210, 330 degrees
+      // Use +PI/2 offset to orient point "Up" if mapping 0 to Right.
+      const angles = [
+        Math.PI / 2, // Top
+        Math.PI / 2 + (2 * Math.PI) / 3, // Left Bottom
+        Math.PI / 2 + (4 * Math.PI) / 3, // Right Bottom
+      ];
+
+      const vertices: { x: number; z: number }[] = [];
+
+      // Generate pairs around each corner
+      // Invert Sine (z = -sin) for correct CCW winding order
+      for (let a of angles) {
+        vertices.push({
+          x: R * Math.cos(a - delta),
+          z: -R * Math.sin(a - delta),
+        });
+        vertices.push({
+          x: R * Math.cos(a + delta),
+          z: -R * Math.sin(a + delta),
+        });
+      }
+
+      return createGemGeometry(vertices);
+    }
+  }, [piece.shape]);
+
+  // Handle pointer down event to start drag
+  const handlePointerDown = (event: any) => {
+    // Stop propagation to prevent camera rotation/pan while dragging piece
     event.stopPropagation();
+    // Prevent default browser behavior if needed
+    // event.preventDefault();
+
     if (onClick) {
-      onClick(piece.id);
+      onClick(piece.id); // Triggers startDrag in App
     }
   };
 
   return (
     <mesh
       position={[piece.position.x, piece.position.y, piece.position.z]}
-      rotation={getRotation()}
+      // Apply base rotations to align shapes nicely in slots
+      // Square: 45deg to be diamond
+      // Triangle: 180deg to be inverted triangle (pointing down)
+      rotation={
+        piece.shape === "square"
+          ? [0, Math.PI / 4, 0]
+          : piece.shape === "triangular"
+            ? [0, Math.PI, 0]
+            : [0, 0, 0]
+      }
       scale={[scale, scale, scale]}
-      onClick={handleClick}
+      onPointerDown={handlePointerDown}
+      geometry={currentGeometry}
     >
-      {/* Geometry varies by shape */}
-      {getGeometry()}
-
-      {/* MeshStandardMaterial for solid gem appearance
-          Validates: Requirement 2.8 (gem appearance) */}
-      <meshStandardMaterial
+      <meshPhysicalMaterial
         color={colorHex}
         emissive={colorHex}
         emissiveIntensity={isDragged ? 0.3 : isHovered ? 0.2 : 0}
-        metalness={0.4}
-        roughness={0.3}
+        metalness={0.1}
+        roughness={0.1}
+        transmission={0.6} // Glassy look
+        thickness={1.5}
+        clearcoat={1.0}
+        flatShading={true} // Emphasize the facets
       />
     </mesh>
   );

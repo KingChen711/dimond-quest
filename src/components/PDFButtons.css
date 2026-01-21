@@ -11,32 +11,42 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid #ddd;
-  border-radius: 8px;
+  padding: 10px 20px;
+
+  /* Glassmorphism */
+  background: var(--bg-glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  border: 1px solid var(--border-glass);
+  border-radius: 9999px;
+  /* Pill shape */
+
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-glass);
+
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .pdf-button:hover {
-  background: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-glass);
 }
 
 .rules-button {
-  border-color: #4a90e2;
-  color: #4a90e2;
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .rules-button:hover {
-  background: #4a90e2;
-  color: white;
+  background: var(--accent-primary);
+  color: #fff;
+  box-shadow: var(--accent-glow);
 }
 
 .solutions-button {
@@ -47,11 +57,12 @@
 .solutions-button:hover {
   background: #50c878;
   color: white;
+  box-shadow: 0 0 15px rgba(80, 200, 120, 0.5);
 }
 
 .pdf-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 .pdf-button span {

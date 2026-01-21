@@ -165,9 +165,10 @@ export function generateDiamondPieces(): DiamondPiece[] {
   // Position: right side of the board (x: 6, y: 0, z: 0)
   // Arrangement: organized by shape in 3 rows (round, triangular, square)
   // Spacing: 1.5 units between pieces (increased for better visibility)
-  const stagingBaseX = 4; // Moved closer to board (was 6)
+  // Spacing: 1.5 units between pieces (increased for better visibility)
+  const stagingBaseX = 3.8; // Moved away from board (was 3.2)
   const stagingBaseY = 0; // Same level as board
-  const stagingBaseZ = 2; // Centered vertically
+  const stagingBaseZ = -3.0; // Centered vertically (5 items * 1.5 spacing = 7.5 height, centered at 0)
   const pieceSpacing = 1.5; // Increased from 1.0 to 1.5
 
   // Define piece configurations grouped by shape
@@ -202,12 +203,13 @@ export function generateDiamondPieces(): DiamondPiece[] {
       const color = group.colors[colorIndex];
 
       // Calculate staging position
-      // Pieces are arranged in horizontal rows by shape
-      // x increases for each piece in the row (horizontal spread)
-      // z decreases for each row (vertical rows)
-      const x = stagingBaseX + colorIndex * pieceSpacing;
+      // Pieces are arranged in vertical columns by shape (Rotated 90 degrees)
+      // x increases for each row (vertical rows)
+      // z increases for each piece in the column
+
+      const x = stagingBaseX + group.rowOffset * (pieceSpacing * 0.9);
+      const z = stagingBaseZ + colorIndex * pieceSpacing;
       const y = stagingBaseY;
-      const z = stagingBaseZ - group.rowOffset * (pieceSpacing * 1.5);
 
       const stagingPosition = new Vector3(x, y, z);
 

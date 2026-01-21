@@ -1,11 +1,49 @@
-/* App container styles for full viewport */
 .app-container {
   width: 100vw;
   height: 100vh;
-  background: #404040;
+  background: var(--bg-primary);
+  /* Use variable */
+  position: relative;
+  /* Ensure absolute children are positioned correctly */
 }
 
-/* Canvas will fill the container automatically */
 canvas {
   display: block;
+  outline: none;
+  /* Remove focus ring on canvas */
+}
+
+/* Button class moved from inline styles */
+.toggle-challenges-btn {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  padding: 12px 24px;
+  background: rgba(56, 189, 248, 0.1);
+  /* Glassy blue */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  border-radius: 9999px;
+  /* Pill shape */
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 100;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.toggle-challenges-btn:hover {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+  box-shadow: var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+.toggle-challenges-btn:active {
+  transform: translateY(0);
 }
